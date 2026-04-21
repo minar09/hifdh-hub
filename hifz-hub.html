@@ -89,6 +89,8 @@ main{flex:1;padding:22px 24px;max-width:940px;width:100%;margin:0 auto;}
 .btn-del:hover{background:rgba(224,85,85,.25);}
 .btn-rev{background:rgba(201,164,82,.12);color:var(--gold);}
 .btn-rev:hover{background:rgba(201,164,82,.25);}
+.btn-edit{background:rgba(106,136,120,.2);color:var(--cream-dim);}
+.btn-edit:hover{background:rgba(106,136,120,.35);color:var(--cream);}
 
 .empty{text-align:center;padding:70px 20px;color:var(--muted);grid-column:1/-1;}
 .empty .eico{font-size:2.8rem;margin-bottom:14px;}
@@ -285,8 +287,8 @@ main{flex:1;padding:22px 24px;max-width:940px;width:100%;margin:0 auto;}
             <select class="fsel2" id="q-surah"></select>
           </div>
           <div class="fg" style="flex:1">
-            <label>Ayah #</label>
-            <input class="fi" id="q-ayah" type="number" min="1" placeholder="e.g. 255">
+            <label>Ayah # / Range</label>
+            <input class="fi" id="q-ayah" type="text" inputmode="numeric" placeholder="e.g. 255 or 255-257">
           </div>
         </div>
       </div>
@@ -540,13 +542,28 @@ async function fetchContent(){
   showMsg('','');
   try{
     if(curType==='quran'){
-      const sn=document.getElementById('q-surah').value;
-      const an=document.getElementById('q-ayah').value;
-      if(!an) throw new Error('Please enter an Ayah number.');
-      const r=await fetch(`https://api.alquran.cloud/v1/ayah/${sn}:${an}/editions/quran-uthmani,en.asad`);
-      const d=await r.json();
-      if(d.code!==200||!d.data) throw new Error('Ayah not found — check the number.');
-      fetched={arabic:d.data[0].text, english:d.data[1].text};
+      const sn=parseInt(document.getElementById('q-surah').value,10);
+      const s=SURAHS.find(x=>x.n===sn);
+      if(!s) throw new Error('Invalid Surah selected.');
+      const range=parseAyahRange(document.getElementById('q-ayah').value,s.a);
+
+      const refs=[];
+      for(let n=range.start;n<=range.end;n++) refs.push(`${sn}:${n}`);
+      const responses=await Promise.all(
+        refs.map(ref=>fetch(`https://api.alquran.cloud/v1/ayah/${ref}/editions/quran-uthmani,en.asad`))
+      );
+      if(responses.some(r=>!r.ok)) throw new Error('One or more ayahs were not found — check the range.');
+
+      const payloads=await Promise.all(responses.map(r=>r.json()));
+      if(payloads.some(d=>d.code!==200||!d.data||!d.data[0])) throw new Error('One or more ayahs were not found — check the range.');
+
+      const arabicParts=payloads.map(d=>d.data[0].text).filter(Boolean);
+      const englishParts=payloads.map(d=>d.data[1]&&d.data[1].text?d.data[1].text:'').filter(Boolean);
+      fetched={
+        arabic:arabicParts.join(' ۝ '),
+        english:englishParts.join('\n\n'),
+        qRange:range
+      };
     } else {
       const slug=document.getElementById('h-book').value;
       const num=document.getElementById('h-num').value;
@@ -587,6 +604,19 @@ function showMsg(txt,cls){
   el.className='msgbox'+(txt?` show ${cls}`:'');
 }
 
+function parseAyahRange(rawValue,maxAyah){
+  const value=String(rawValue||'').trim();
+  if(!value) throw new Error('Please enter an Ayah number or range.');
+  const m=value.match(/^(\d+)(?:\s*-\s*(\d+))?$/);
+  if(!m) throw new Error('Use a valid Ayah number or range, like 2 or 2-5.');
+  const start=parseInt(m[1],10);
+  const end=parseInt(m[2]||m[1],10);
+  if(start<1||end<1) throw new Error('Ayah number must be 1 or greater.');
+  if(start>end) throw new Error('Ayah range must be start-end (e.g. 2-5).');
+  if(start>maxAyah||end>maxAyah) throw new Error(`This surah has only ${maxAyah} ayahs.`);
+  return {start,end};
+}
+
 // ═══════════════ SAVE ═══════════════
 function saveItem(){
   if(!fetched) return;
@@ -604,8 +634,11 @@ function saveItem(){
     const sn=parseInt(document.getElementById('q-surah').value);
     const s=SURAHS.find(x=>x.n===sn);
     item.surah=sn; item.surahName=s.name;
-    item.ayah=parseInt(document.getElementById('q-ayah').value);
-    item.ref=`${s.name} ${sn}:${item.ayah}`;
+    const range=(fetched&&fetched.qRange) ? fetched.qRange : parseAyahRange(document.getElementById('q-ayah').value,s.a);
+    item.ayahStart=range.start;
+    item.ayahEnd=range.end;
+    item.ayah=range.start;
+    item.ref=`${s.name} ${sn}:${range.start}${range.end>range.start?`-${range.end}`:''}`;
   } else {
     const slug=document.getElementById('h-book').value;
     const bk=BOOKS.find(b=>b.slug===slug);
@@ -680,6 +713,7 @@ function renderLib(){
       </div>
       <div class="c-acts" onclick="event.stopPropagation()">
         <button class="btn-sm btn-rev" onclick="singleRevise('${i.id}')">🃏 Revise</button>
+        <button class="btn-sm btn-edit" onclick="editItem('${i.id}')">✏ Edit</button>
         <button class="btn-sm btn-del" onclick="delItem('${i.id}')">🗑 Delete</button>
       </div>
     </div>
@@ -732,6 +766,97 @@ function closeModal(e){
 function updStatus(id,s){
   const i=items.find(x=>x.id===id);
   if(i){i.status=s;save();openModal(id);}
+}
+
+function escHtml(v){
+  return String(v||'')
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;')
+    .replaceAll('"','&quot;')
+    .replaceAll("'","&#39;");
+}
+
+function editItem(id){
+  const i=items.find(x=>x.id===id); if(!i) return;
+  const refField=i.type==='quran'
+    ? `<div class="fg" style="margin-bottom:10px">
+         <label>Ayah # / Range</label>
+         <input class="fi" id="e-ref-num" type="text" inputmode="numeric" value="${escHtml(`${i.ayahStart||i.ayah||''}${(i.ayahEnd&&i.ayahEnd!==(i.ayahStart||i.ayah))?`-${i.ayahEnd}`:''}`)}" placeholder="e.g. 255 or 255-257">
+       </div>`
+    : `<div class="fg" style="margin-bottom:10px">
+         <label>Hadith #</label>
+         <input class="fi" id="e-ref-num" type="number" min="1" value="${escHtml(i.hadithNum||'')}">
+       </div>`;
+
+  document.getElementById('mcontent').innerHTML=`
+    <div style="font-family:'Lora',serif;font-size:1.15rem;color:var(--cream);margin-bottom:14px;padding-right:30px">Edit Entry</div>
+    <div class="fg" style="margin-bottom:10px">
+      <label>Reference</label>
+      <div class="tag" style="display:inline-block">${escHtml(i.type==='quran'?`${i.surahName} (${i.surah})`:i.bookName||'')}</div>
+    </div>
+    ${refField}
+    <div class="fg" style="margin-bottom:10px">
+      <label>Topic / Title</label>
+      <input class="fi" id="e-topic" value="${escHtml(i.topic||'')}">
+    </div>
+    <div class="frow">
+      <div class="fg" style="margin-bottom:10px">
+        <label>Section</label>
+        <input class="fi" id="e-sec" value="${escHtml(i.section||'')}">
+      </div>
+      <div class="fg" style="margin-bottom:10px">
+        <label>Source Book</label>
+        <input class="fi" id="e-src" value="${escHtml(i.sourceBook||'')}">
+      </div>
+    </div>
+    <div class="fg" style="margin-bottom:10px">
+      <label>Status</label>
+      <select class="fsel2" id="e-status">
+        <option value="new" ${i.status==='new'?'selected':''}>New</option>
+        <option value="learning" ${i.status==='learning'?'selected':''}>Learning</option>
+        <option value="memorized" ${i.status==='memorized'?'selected':''}>Memorized</option>
+      </select>
+    </div>
+    <div class="fg" style="margin-bottom:10px">
+      <label>Personal Notes</label>
+      <textarea class="fta" id="e-notes">${escHtml(i.notes||'')}</textarea>
+    </div>
+    <div class="m-acts">
+      <button class="stbtn a-learning" onclick="saveEdit('${id}')">💾 Save Changes</button>
+      <button class="stbtn" onclick="openModal('${id}')">↩ Back</button>
+    </div>`;
+  document.getElementById('overlay').classList.add('show');
+}
+
+function saveEdit(id){
+  const i=items.find(x=>x.id===id); if(!i) return;
+  try{
+    i.topic=document.getElementById('e-topic').value.trim();
+    i.section=document.getElementById('e-sec').value.trim();
+    i.sourceBook=document.getElementById('e-src').value.trim();
+    i.notes=document.getElementById('e-notes').value.trim();
+    i.status=document.getElementById('e-status').value;
+
+    if(i.type==='quran'){
+      const s=SURAHS.find(x=>x.n===i.surah);
+      const range=parseAyahRange(document.getElementById('e-ref-num').value,s.a);
+      i.ayahStart=range.start;
+      i.ayahEnd=range.end;
+      i.ayah=range.start;
+      i.ref=`${s.name} ${i.surah}:${range.start}${range.end>range.start?`-${range.end}`:''}`;
+    } else {
+      const hn=parseInt(document.getElementById('e-ref-num').value,10);
+      if(!hn||hn<1) throw new Error('Hadith number must be 1 or greater.');
+      i.hadithNum=hn;
+      i.ref=`${i.bookName} #${hn}`;
+    }
+    save();
+    openModal(id);
+    renderLib();
+  }catch(e){
+    alert(e.message);
+  }
 }
 
 // ═══════════════ FLASHCARD ═══════════════
