@@ -55,6 +55,12 @@ main{flex:1;padding:22px 24px;max-width:940px;width:100%;margin:0 auto;}
 .stat-pill strong{color:var(--cream);}
 
 .lib-header{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;align-items:center;}
+.bulk-bar{display:none;gap:10px;flex-wrap:wrap;align-items:center;background:var(--surf);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;margin-bottom:14px;}
+.bulk-bar.show{display:flex;}
+.bulk-note{font-size:.78rem;color:var(--cream-dim);}
+.bulk-check{width:18px;height:18px;accent-color:var(--gold);}
+.bulk-clear{display:flex;align-items:center;gap:6px;font-size:.77rem;color:var(--cream-dim);background:var(--surf2);border:1px solid var(--border);border-radius:8px;padding:7px 9px;white-space:nowrap;}
+.bulk-clear input{accent-color:var(--gold);}
 .search-box{flex:1;min-width:180px;background:var(--surf);border:1px solid var(--border);border-radius:var(--r);padding:9px 15px;color:var(--cream);font-family:'Inter',sans-serif;font-size:.88rem;outline:none;transition:border-color .2s;}
 .search-box:focus{border-color:var(--gold);}
 .search-box::placeholder{color:var(--muted);}
@@ -70,11 +76,13 @@ main{flex:1;padding:22px 24px;max-width:940px;width:100%;margin:0 auto;}
 .card:hover::before{opacity:1;}
 
 .c-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:11px;}
+.c-head-right{display:flex;align-items:center;gap:8px;}
 .c-ref{font-family:'Lora',serif;font-size:.95rem;font-weight:600;color:var(--cream);}
 .c-ref small{font-family:'Inter',sans-serif;font-size:.72rem;color:var(--muted);display:block;font-weight:400;margin-top:2px;}
 .badge{font-size:.68rem;font-weight:600;padding:3px 8px;border-radius:4px;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;}
 .badge.quran{background:rgba(61,184,122,.15);color:var(--em);border:1px solid rgba(61,184,122,.25);}
 .badge.hadith{background:rgba(201,164,82,.12);color:var(--gold);border:1px solid rgba(201,164,82,.25);}
+.badge.knowledge{background:rgba(110,150,255,.14);color:#9bb8ff;border:1px solid rgba(110,150,255,.28);}
 
 .c-arabic{font-family:'Amiri',serif;font-size:1.25rem;direction:rtl;text-align:right;color:var(--cream);line-height:1.85;margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .c-meta{display:flex;gap:5px;flex-wrap:wrap;}
@@ -96,6 +104,19 @@ main{flex:1;padding:22px 24px;max-width:940px;width:100%;margin:0 auto;}
 .empty .eico{font-size:2.8rem;margin-bottom:14px;}
 .empty h3{font-family:'Lora',serif;font-size:1.25rem;color:var(--cream-dim);margin-bottom:7px;}
 .empty p{font-size:.88rem;line-height:1.6;}
+
+/* ─────────── KNOWLEDGE VIEW ─────────── */
+.k-panel{background:var(--surf);border:1px solid var(--border);border-radius:var(--r);padding:14px;}
+.k-filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+.k-list{display:flex;flex-direction:column;gap:9px;}
+.k-row{background:var(--surf2);border:1px solid var(--border);border-radius:10px;padding:12px;display:grid;grid-template-columns:1.2fr .9fr .8fr auto;gap:10px;align-items:start;}
+.k-main{min-width:0;}
+.k-title{font-family:'Lora',serif;color:var(--cream);font-size:.95rem;font-weight:600;}
+.k-sub{font-size:.78rem;color:var(--muted);margin-top:4px;}
+.k-quote{font-size:.82rem;color:var(--cream-dim);line-height:1.6;margin-top:7px;max-height:4.8em;overflow:hidden;}
+.k-meta{display:flex;flex-wrap:wrap;gap:6px;}
+.k-actions{display:flex;gap:6px;justify-content:flex-end;}
+@media(max-width:900px){.k-row{grid-template-columns:1fr;}}
 
 /* ─────────── ADD VIEW ─────────── */
 .add-panel{background:var(--surf);border:1px solid var(--border);border-radius:var(--r);padding:26px;max-width:580px;margin:0 auto;}
@@ -245,6 +266,7 @@ main{flex:1;padding:22px 24px;max-width:940px;width:100%;margin:0 auto;}
 
 <nav>
   <div class="tab active" data-tab="library" onclick="switchTab('library')">📚 Library</div>
+  <div class="tab" data-tab="knowledge" onclick="switchTab('knowledge')">📝 Knowledge</div>
   <div class="tab" data-tab="add" onclick="switchTab('add')">➕ Add New</div>
   <div class="tab" data-tab="revise" onclick="switchTab('revise')">🃏 Revise</div>
 </nav>
@@ -267,8 +289,55 @@ main{flex:1;padding:22px 24px;max-width:940px;width:100%;margin:0 auto;}
         <option value="learning">Learning</option>
         <option value="memorized">Memorized ✓</option>
       </select>
+      <select class="fsel" id="fsection" onchange="renderLib()">
+        <option value="all">All Sections</option>
+      </select>
+      <select class="fsel" id="fsource" onchange="renderLib()">
+        <option value="all">All Source Books</option>
+      </select>
+      <select class="fsel" id="ftopic" onchange="renderLib()">
+        <option value="all">All Topics</option>
+      </select>
+      <select class="fsel" id="fkind" onchange="renderLib()">
+        <option value="all">All Knowledge Types</option>
+      </select>
+      <select class="fsel" id="fbranch" onchange="renderLib()">
+        <option value="all">All Branches</option>
+      </select>
+      <select class="fsel" id="fscholar" onchange="renderLib()">
+        <option value="all">All Scholars</option>
+      </select>
+      <button class="fsel" type="button" id="bulk-toggle-btn" onclick="toggleBulkMode()">Bulk Edit Tags</button>
+    </div>
+    <div class="bulk-bar" id="bulk-bar">
+      <div class="bulk-note" id="bulk-count">0 selected</div>
+      <input class="fi" id="bulk-topic" list="topic-options" placeholder="Bulk Topic (optional)">
+      <label class="bulk-clear"><input type="checkbox" id="bulk-clear-topic"> Clear Topic</label>
+      <input class="fi" id="bulk-section" list="section-options" placeholder="Bulk Section (optional)">
+      <label class="bulk-clear"><input type="checkbox" id="bulk-clear-section"> Clear Section</label>
+      <input class="fi" id="bulk-source" list="source-options" placeholder="Bulk Source Book (optional)">
+      <label class="bulk-clear"><input type="checkbox" id="bulk-clear-source"> Clear Source</label>
+      <button class="fsel" type="button" onclick="bulkSelectVisible()">Select Visible</button>
+      <button class="fsel" type="button" onclick="bulkClearSelection()">Clear Selection</button>
+      <button class="fsel" type="button" onclick="applyBulkTags()">Apply to Selected</button>
     </div>
     <div class="grid" id="grid"></div>
+  </div>
+
+  <!-- ── KNOWLEDGE ── -->
+  <div id="view-knowledge" class="view">
+    <div class="k-panel">
+      <div class="k-filters">
+        <input class="search-box" id="k-srch" placeholder="Search quote, scholar, branch, reference..." oninput="renderKnowledge()">
+        <select class="fsel" id="k-kind" onchange="renderKnowledge()"><option value="all">All Knowledge Types</option></select>
+        <select class="fsel" id="k-branch" onchange="renderKnowledge()"><option value="all">All Branches</option></select>
+        <select class="fsel" id="k-scholar" onchange="renderKnowledge()"><option value="all">All Scholars</option></select>
+        <select class="fsel" id="k-status" onchange="renderKnowledge()">
+          <option value="all">All Status</option><option value="new">New</option><option value="learning">Learning</option><option value="memorized">Memorized</option>
+        </select>
+      </div>
+      <div class="k-list" id="k-list"></div>
+    </div>
   </div>
 
   <!-- ── ADD ── -->
@@ -278,6 +347,7 @@ main{flex:1;padding:22px 24px;max-width:940px;width:100%;margin:0 auto;}
       <div class="type-toggle">
         <button class="ttbtn active" id="tq" onclick="setType('quran')">📖 Quran</button>
         <button class="ttbtn" id="th" onclick="setType('hadith')">📚 Hadith</button>
+        <button class="ttbtn" id="tx" onclick="setType('knowledge')">📝 Knowledge Text</button>
       </div>
 
       <div id="fq">
@@ -306,18 +376,78 @@ main{flex:1;padding:22px 24px;max-width:940px;width:100%;margin:0 auto;}
         </div>
       </div>
 
+      <div id="fx" style="display:none">
+        <div class="frow">
+          <div class="fg" style="flex:1">
+            <label>Knowledge Type</label>
+            <select class="fsel2" id="x-kind">
+              <option value="Usul">Usul</option>
+              <option value="Qawaid">Qawaid</option>
+              <option value="Poem Verse">Poem Verse</option>
+              <option value="Scholar Saying">Scholar Saying</option>
+              <option value="Fatwa">Fatwa</option>
+              <option value="Book Reference">Book Reference</option>
+              <option value="Imam Opinion">Imam Opinion</option>
+              <option value="Faidah / Benefit">Faidah / Benefit</option>
+              <option value="Quote">Quote</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="fg" style="flex:1">
+            <label>Scholar / Author</label>
+            <input class="fi" id="x-scholar" list="scholar-options" placeholder="e.g. Ibn Taymiyyah">
+          </div>
+        </div>
+        <div class="frow">
+          <div class="fg">
+            <label>Branch</label>
+            <input class="fi" id="x-branch" list="branch-options" placeholder="e.g. Aqeedah, Fiqh, Usul al-Fiqh">
+          </div>
+          <div class="fg">
+            <label>Area</label>
+            <input class="fi" id="x-area" list="area-options" placeholder="e.g. Names & Attributes">
+          </div>
+          <div class="fg">
+            <label>Sub-Topic</label>
+            <input class="fi" id="x-subtopic" list="subtopic-options" placeholder="e.g. Conditions of Shahadah">
+          </div>
+        </div>
+        <div class="frow">
+          <div class="fg">
+            <label>Book / Source Title</label>
+            <input class="fi" id="x-book" list="book-options" placeholder="e.g. Kitab at-Tawhid">
+          </div>
+          <div class="fg">
+            <label>Reference</label>
+            <input class="fi" id="x-ref" placeholder="e.g. vol 1 p. 45, hadith 12">
+          </div>
+        </div>
+        <div class="fg">
+          <label>Source URL (optional fetch)</label>
+          <input class="fi" id="x-url" placeholder="https://...">
+        </div>
+        <div class="fg">
+          <label>Primary Text / Quote (Arabic or original)</label>
+          <textarea class="fta" id="x-ara" placeholder="Paste the exact text/quote here..."></textarea>
+        </div>
+        <div class="fg">
+          <label>Optional Translation / Explanation</label>
+          <textarea class="fta" id="x-eng" placeholder="Translation, explanation, notes from source..."></textarea>
+        </div>
+      </div>
+
       <div class="fg">
         <label>Topic / Title</label>
-        <input class="fi" id="f-topic" placeholder="e.g. Ayat al-Kursi, Sincerity, Tawakkul…">
+        <input class="fi" id="f-topic" list="topic-options" placeholder="e.g. Ayat al-Kursi, Sincerity, Tawakkul…">
       </div>
       <div class="frow">
         <div class="fg">
           <label>Section</label>
-          <input class="fi" id="f-sec" placeholder="e.g. Aqeedah, Worship…">
+          <input class="fi" id="f-sec" list="section-options" placeholder="e.g. Aqeedah, Worship…">
         </div>
         <div class="fg">
           <label>Source Book</label>
-          <input class="fi" id="f-src" placeholder="e.g. Fortress of Muslim">
+          <input class="fi" id="f-src" list="source-options" placeholder="e.g. Fortress of Muslim">
         </div>
       </div>
       <div class="fg">
@@ -351,9 +481,10 @@ main{flex:1;padding:22px 24px;max-width:940px;width:100%;margin:0 auto;}
         <div class="rv-opt">
           <label>Filter by Type</label>
           <select id="fc-ftype">
-            <option value="all">All (Quran + Hadith)</option>
+            <option value="all">All (Quran + Hadith + Knowledge)</option>
             <option value="quran">Quran Only</option>
             <option value="hadith">Hadith Only</option>
+            <option value="knowledge">Knowledge Texts Only</option>
           </select>
         </div>
         <div class="rv-opt">
@@ -371,6 +502,42 @@ main{flex:1;padding:22px 24px;max-width:940px;width:100%;margin:0 auto;}
           <select id="fc-ftrans">
             <option value="no">No — Arabic Only</option>
             <option value="yes">Yes — Show Translation Below</option>
+          </select>
+        </div>
+        <div class="rv-opt">
+          <label>Filter by Section</label>
+          <select id="fc-fsection">
+            <option value="all">All Sections</option>
+          </select>
+        </div>
+        <div class="rv-opt">
+          <label>Filter by Source Book</label>
+          <select id="fc-fsource">
+            <option value="all">All Source Books</option>
+          </select>
+        </div>
+        <div class="rv-opt">
+          <label>Filter by Topic</label>
+          <select id="fc-ftopic">
+            <option value="all">All Topics</option>
+          </select>
+        </div>
+        <div class="rv-opt">
+          <label>Filter by Knowledge Type</label>
+          <select id="fc-fkind">
+            <option value="all">All Knowledge Types</option>
+          </select>
+        </div>
+        <div class="rv-opt">
+          <label>Filter by Branch</label>
+          <select id="fc-fbranch">
+            <option value="all">All Branches</option>
+          </select>
+        </div>
+        <div class="rv-opt">
+          <label>Filter by Scholar</label>
+          <select id="fc-fscholar">
+            <option value="all">All Scholars</option>
           </select>
         </div>
       </div>
@@ -432,6 +599,15 @@ main{flex:1;padding:22px 24px;max-width:940px;width:100%;margin:0 auto;}
   </div>
 </div>
 
+<datalist id="topic-options"></datalist>
+<datalist id="section-options"></datalist>
+<datalist id="source-options"></datalist>
+<datalist id="branch-options"></datalist>
+<datalist id="area-options"></datalist>
+<datalist id="subtopic-options"></datalist>
+<datalist id="scholar-options"></datalist>
+<datalist id="book-options"></datalist>
+
 <script>
 // ═══════════════ DATA ═══════════════
 const SURAHS=[
@@ -486,11 +662,26 @@ const BOOKS=[
   {slug:'nawawi40',name:"Imam Nawawi's 40 Hadith",eng:'eng-nawawi40',ara:'ara-nawawi40'},
 ];
 
+const QURAN_API_BASES=[
+  'https://api.alquran.cloud/v1',
+  'https://alquran.api.islamic.network/v1',
+  'https://alquran.api.alislam.ru/v1'
+];
+const QURAN_COM_TRANSLATION_HILALI_ID=203;
+
+const HADITH_API_BASES=[
+  'https://cdn.jsdelivr.net/gh/fawazahmed0/hadith-api@1',
+  'https://raw.githubusercontent.com/fawazahmed0/hadith-api/1'
+];
+
 // ═══════════════ STATE ═══════════════
 let items = JSON.parse(localStorage.getItem('hifzhub_v1') || '[]');
 let curType = 'quran';
 let fetched = null;
 let showTrans = false;
+let bulkMode = false;
+let bulkSelectedIds = new Set();
+let lastLibFilteredIds = [];
 
 // FC state
 let fcItems=[], fcIdx=0, fcFlipped=false, fcShowTrans=false;
@@ -512,6 +703,7 @@ let fcStats={got:0,mem:0,rev:0};
     o.textContent=b.name;
     bs.appendChild(o);
   });
+  refreshFieldOptions();
   renderLib();
 })();
 
@@ -519,7 +711,10 @@ let fcStats={got:0,mem:0,rev:0};
 function switchTab(tab){
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab));
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===`view-${tab}`));
+  if(tab!=='library'&&bulkMode) toggleBulkMode(false);
+  refreshFieldOptions();
   if(tab==='library') renderLib();
+  if(tab==='knowledge') renderKnowledge();
 }
 
 // ═══════════════ TYPE TOGGLE ═══════════════
@@ -527,11 +722,14 @@ function setType(t){
   curType=t;
   document.getElementById('tq').classList.toggle('active',t==='quran');
   document.getElementById('th').classList.toggle('active',t==='hadith');
+  document.getElementById('tx').classList.toggle('active',t==='knowledge');
   document.getElementById('fq').style.display=t==='quran'?'block':'none';
   document.getElementById('fh').style.display=t==='hadith'?'block':'none';
+  document.getElementById('fx').style.display=t==='knowledge'?'block':'none';
   fetched=null;
   document.getElementById('prev').classList.remove('show');
   document.getElementById('sbtn').disabled=true;
+  document.getElementById('fbtn').textContent=t==='knowledge'?'🧩 Prepare Knowledge Text':'🔍 Fetch Arabic Text & Translation';
   showMsg('','');
 }
 
@@ -543,38 +741,16 @@ async function fetchContent(){
   try{
     if(curType==='quran'){
       const sn=parseInt(document.getElementById('q-surah').value,10);
-      const s=SURAHS.find(x=>x.n===sn);
-      if(!s) throw new Error('Invalid Surah selected.');
-      const range=parseAyahRange(document.getElementById('q-ayah').value,s.a);
-
-      const refs=[];
-      for(let n=range.start;n<=range.end;n++) refs.push(`${sn}:${n}`);
-      const responses=await Promise.all(
-        refs.map(ref=>fetch(`https://api.alquran.cloud/v1/ayah/${ref}/editions/quran-uthmani,en.hilali`))
-      );
-      if(responses.some(r=>!r.ok)) throw new Error('One or more ayahs were not found — check the range.');
-
-      const payloads=await Promise.all(responses.map(r=>r.json()));
-      if(payloads.some(d=>d.code!==200||!d.data||!d.data[0])) throw new Error('One or more ayahs were not found — check the range.');
-
-      const arabicParts=payloads.map(d=>d.data[0].text).filter(Boolean);
-      const englishParts=payloads.map(d=>d.data[1]&&d.data[1].text?d.data[1].text:'').filter(Boolean);
-      fetched={
-        arabic:arabicParts.join(' ۝ '),
-        english:englishParts.join('\n\n'),
-        qRange:range
-      };
-    } else {
+      const rangeText=document.getElementById('q-ayah').value;
+      fetched=await fetchQuranByRef(sn,rangeText);
+    } else if(curType==='hadith') {
       const slug=document.getElementById('h-book').value;
       const num=document.getElementById('h-num').value;
       if(!num) throw new Error('Please enter a Hadith number.');
-      const bk=BOOKS.find(b=>b.slug===slug);
-      const [arabic,english]=await Promise.all([
-        fetchHadithEditionText([bk.ara,`${bk.ara}1`],num,true),
-        fetchHadithEditionText([bk.eng,`${bk.eng}1`],num,false)
-      ]);
-      fetched={arabic, english};
+      fetched=await fetchHadithByRef(slug,num);
       if(!fetched.arabic) throw new Error('Arabic text unavailable for this entry.');
+    } else {
+      fetched=await fetchKnowledgeByInput();
     }
     document.getElementById('p-ara').textContent=fetched.arabic;
     document.getElementById('p-eng').textContent=fetched.english;
@@ -585,7 +761,7 @@ async function fetchContent(){
     showMsg('⚠ '+e.message,'err');
     fetched=null;
   }
-  btn.disabled=false; btn.textContent='🔍 Fetch Arabic Text & Translation';
+  btn.disabled=false; btn.textContent=curType==='knowledge'?'🧩 Prepare Knowledge Text':'🔍 Fetch Arabic Text & Translation';
 }
 
 function togTrans(){
@@ -613,12 +789,257 @@ function parseAyahRange(rawValue,maxAyah){
   return {start,end};
 }
 
+function buildFieldValues(field){
+  const vals=[...new Set(items.map(i=>(i[field]||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+  return vals;
+}
+
+function fillSelectOptions(el,values,label){
+  if(!el) return;
+  const keep=el.value||'all';
+  el.innerHTML=`<option value="all">All ${label}</option>`+values.map(v=>`<option value="${escHtml(v)}">${escHtml(v)}</option>`).join('');
+  el.value=values.includes(keep)?keep:'all';
+}
+
+function fillDatalist(el,values){
+  if(!el) return;
+  el.innerHTML=values.map(v=>`<option value="${escHtml(v)}"></option>`).join('');
+}
+
+function refreshFieldOptions(){
+  const topics=buildFieldValues('topic');
+  const sections=buildFieldValues('section');
+  const sources=buildFieldValues('sourceBook');
+  const kinds=buildFieldValues('knowledgeKind');
+  const branches=buildFieldValues('branch');
+  const scholars=buildFieldValues('scholar');
+  const areas=buildFieldValues('area');
+  const subTopics=buildFieldValues('subTopic');
+  const books=buildFieldValues('bookTitle');
+  fillDatalist(document.getElementById('topic-options'),topics);
+  fillDatalist(document.getElementById('section-options'),sections);
+  fillDatalist(document.getElementById('source-options'),sources);
+  fillDatalist(document.getElementById('branch-options'),branches);
+  fillDatalist(document.getElementById('area-options'),areas);
+  fillDatalist(document.getElementById('subtopic-options'),subTopics);
+  fillDatalist(document.getElementById('scholar-options'),scholars);
+  fillDatalist(document.getElementById('book-options'),books);
+  fillSelectOptions(document.getElementById('ftopic'),topics,'Topics');
+  fillSelectOptions(document.getElementById('fsection'),sections,'Sections');
+  fillSelectOptions(document.getElementById('fsource'),sources,'Source Books');
+  fillSelectOptions(document.getElementById('fkind'),kinds,'Knowledge Types');
+  fillSelectOptions(document.getElementById('fbranch'),branches,'Branches');
+  fillSelectOptions(document.getElementById('fscholar'),scholars,'Scholars');
+  fillSelectOptions(document.getElementById('fc-ftopic'),topics,'Topics');
+  fillSelectOptions(document.getElementById('fc-fsection'),sections,'Sections');
+  fillSelectOptions(document.getElementById('fc-fsource'),sources,'Source Books');
+  fillSelectOptions(document.getElementById('fc-fkind'),kinds,'Knowledge Types');
+  fillSelectOptions(document.getElementById('fc-fbranch'),branches,'Branches');
+  fillSelectOptions(document.getElementById('fc-fscholar'),scholars,'Scholars');
+  fillSelectOptions(document.getElementById('k-kind'),kinds,'Knowledge Types');
+  fillSelectOptions(document.getElementById('k-branch'),branches,'Branches');
+  fillSelectOptions(document.getElementById('k-scholar'),scholars,'Scholars');
+}
+
+function updateBulkUi(){
+  const bar=document.getElementById('bulk-bar');
+  const btn=document.getElementById('bulk-toggle-btn');
+  if(bar) bar.classList.toggle('show',bulkMode);
+  if(btn) btn.textContent=bulkMode?'Exit Bulk Edit':'Bulk Edit Tags';
+  const c=document.getElementById('bulk-count');
+  if(c) c.textContent=`${bulkSelectedIds.size} selected`;
+}
+
+function toggleBulkMode(force){
+  bulkMode=typeof force==='boolean'?force:!bulkMode;
+  if(!bulkMode){
+    bulkSelectedIds.clear();
+    ['bulk-topic','bulk-section','bulk-source'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el) el.value='';
+    });
+    ['bulk-clear-topic','bulk-clear-section','bulk-clear-source'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el) el.checked=false;
+    });
+  }
+  updateBulkUi();
+  renderLib();
+}
+
+function toggleBulkCard(id){
+  if(bulkSelectedIds.has(id)) bulkSelectedIds.delete(id);
+  else bulkSelectedIds.add(id);
+  updateBulkUi();
+  renderLib();
+}
+
+function bulkSelectVisible(){
+  lastLibFilteredIds.forEach(id=>bulkSelectedIds.add(id));
+  updateBulkUi();
+  renderLib();
+}
+
+function bulkClearSelection(){
+  bulkSelectedIds.clear();
+  updateBulkUi();
+  renderLib();
+}
+
+function applyBulkTags(){
+  if(!bulkSelectedIds.size){ alert('Select at least one card first.'); return; }
+  const topic=document.getElementById('bulk-topic').value.trim();
+  const section=document.getElementById('bulk-section').value.trim();
+  const sourceBook=document.getElementById('bulk-source').value.trim();
+  const clearTopic=document.getElementById('bulk-clear-topic').checked;
+  const clearSection=document.getElementById('bulk-clear-section').checked;
+  const clearSource=document.getElementById('bulk-clear-source').checked;
+  if(!topic&&!section&&!sourceBook&&!clearTopic&&!clearSection&&!clearSource){
+    alert('Enter at least one value, or tick a clear option.');
+    return;
+  }
+  let updated=0;
+  items.forEach(i=>{
+    if(!bulkSelectedIds.has(i.id)) return;
+    if(clearTopic) i.topic='';
+    else if(topic) i.topic=topic;
+    if(clearSection) i.section='';
+    else if(section) i.section=section;
+    if(clearSource) i.sourceBook='';
+    else if(sourceBook) i.sourceBook=sourceBook;
+    updated++;
+  });
+  save();
+  refreshFieldOptions();
+  alert(`✓ Updated ${updated} card(s).`);
+  bulkClearSelection();
+}
+
+async function fetchQuranByRef(surahNumber,rangeText){
+  const s=SURAHS.find(x=>x.n===surahNumber);
+  if(!s) throw new Error('Invalid Surah selected.');
+  const range=parseAyahRange(rangeText,s.a);
+  const refs=[];
+  for(let n=range.start;n<=range.end;n++) refs.push(`${surahNumber}:${n}`);
+  let payloads=null;
+  let lastErr=null;
+  for(const base of QURAN_API_BASES){
+    try{
+      const responses=await Promise.all(
+        refs.map(ref=>fetch(`${base}/ayah/${ref}/editions/quran-uthmani,en.hilali`))
+      );
+      if(responses.some(r=>!r.ok)) throw new Error('HTTP response error');
+      const candidate=await Promise.all(responses.map(r=>r.json()));
+      if(candidate.some(d=>d.code!==200||!d.data||!d.data[0])) throw new Error('Invalid ayah payload');
+      payloads=candidate;
+      break;
+    }catch(e){
+      lastErr=e;
+    }
+  }
+  if(payloads){
+    const arabicParts=payloads.map(d=>d.data[0].text).filter(Boolean);
+    const englishParts=payloads.map(d=>d.data[1]&&d.data[1].text?d.data[1].text:'').filter(Boolean);
+    return {arabic:arabicParts.join(' ۝ '), english:englishParts.join('\n\n'), qRange:range};
+  }
+  // Last-resort fallback from Quran.com (keeps Hilali & Khan translation only).
+  try{
+    const qc=await fetchQuranFromQuranCom(refs);
+    return {arabic:qc.arabic, english:qc.english, qRange:range};
+  }catch(e){
+    throw lastErr||e||new Error('Ayah fetch failed across all providers.');
+  }
+}
+
+function stripHtml(input){
+  return String(input||'').replace(/<[^>]+>/g,'').replace(/&nbsp;/g,' ').trim();
+}
+
+function normalizeSpaces(input){
+  return String(input||'').replace(/\s+/g,' ').trim();
+}
+
+async function fetchKnowledgeByInput(){
+  const mainText=document.getElementById('x-ara').value.trim();
+  const secondaryText=document.getElementById('x-eng').value.trim();
+  const srcUrl=document.getElementById('x-url').value.trim();
+
+  if(mainText||secondaryText){
+    return {arabic:mainText||secondaryText, english:secondaryText};
+  }
+  if(!srcUrl) throw new Error('Add text manually, or provide a Source URL to try fetching.');
+
+  let response;
+  try{
+    response=await fetch(srcUrl);
+  }catch(e){
+    throw new Error('Could not access URL from browser (likely CORS). Paste text manually instead.');
+  }
+  if(!response.ok) throw new Error('Could not fetch from URL. Paste text manually instead.');
+  const raw=await response.text();
+  const extracted=normalizeSpaces(stripHtml(raw)).slice(0,2800);
+  if(!extracted) throw new Error('URL has no readable text. Paste text manually instead.');
+  document.getElementById('x-eng').value=extracted;
+  return {arabic:extracted, english:extracted};
+}
+
+async function fetchKnowledgeByEditInput(){
+  const mainText=document.getElementById('e-ara') ? document.getElementById('e-ara').value.trim() : '';
+  const secondaryText=document.getElementById('e-eng') ? document.getElementById('e-eng').value.trim() : '';
+  const srcUrl=document.getElementById('e-url') ? document.getElementById('e-url').value.trim() : '';
+  if(mainText||secondaryText) return {arabic:mainText||secondaryText, english:secondaryText};
+  if(!srcUrl) throw new Error('Add text manually, or provide a Source URL to try fetching.');
+  let response;
+  try{
+    response=await fetch(srcUrl);
+  }catch(e){
+    throw new Error('Could not access URL from browser (likely CORS). Paste text manually instead.');
+  }
+  if(!response.ok) throw new Error('Could not fetch from URL. Paste text manually instead.');
+  const raw=await response.text();
+  const extracted=normalizeSpaces(stripHtml(raw)).slice(0,2800);
+  if(!extracted) throw new Error('URL has no readable text. Paste text manually instead.');
+  if(document.getElementById('e-eng')) document.getElementById('e-eng').value=extracted;
+  return {arabic:extracted, english:extracted};
+}
+
+async function fetchQuranFromQuranCom(refs){
+  const responses=await Promise.all(
+    refs.map(ref=>fetch(`https://api.quran.com/api/v4/verses/by_key/${ref}?fields=text_uthmani&translations=${QURAN_COM_TRANSLATION_HILALI_ID}`))
+  );
+  if(responses.some(r=>!r.ok)) throw new Error('Quran.com fallback failed.');
+  const payloads=await Promise.all(responses.map(r=>r.json()));
+  const verses=payloads.map(p=>p.verse).filter(Boolean);
+  if(verses.length!==refs.length) throw new Error('Quran.com returned incomplete verse data.');
+  const arabicParts=verses.map(v=>v.text_uthmani||'').filter(Boolean);
+  const englishParts=verses.map(v=>{
+    const t=(v.translations&&v.translations[0]&&v.translations[0].text)?v.translations[0].text:'';
+    return stripHtml(t);
+  }).filter(Boolean);
+  if(!arabicParts.length) throw new Error('Quran.com fallback has no Arabic text.');
+  return {arabic:arabicParts.join(' ۝ '), english:englishParts.join('\n\n')};
+}
+
+async function fetchHadithByRef(bookSlug,hadithNumber){
+  const bk=BOOKS.find(b=>b.slug===bookSlug);
+  if(!bk) throw new Error('Invalid hadith book selected.');
+  const [arabic,english]=await Promise.all([
+    fetchHadithEditionText([bk.ara,`${bk.ara}1`],hadithNumber,true),
+    fetchHadithEditionText([bk.eng,`${bk.eng}1`],hadithNumber,false)
+  ]);
+  return {arabic, english};
+}
+
 async function fetchHadithEditionText(editions,hadithNumber,required){
   const editionList=Array.isArray(editions)?editions:[editions];
   const urls=[];
+  const suffixes=['.min.json','.json'];
   for(const edition of editionList){
-    urls.push(`https://cdn.jsdelivr.net/gh/fawazahmed0/hadith-api@1/editions/${edition}/${hadithNumber}.min.json`);
-    urls.push(`https://cdn.jsdelivr.net/gh/fawazahmed0/hadith-api@1/editions/${edition}/${hadithNumber}.json`);
+    for(const base of HADITH_API_BASES){
+      for(const suffix of suffixes){
+        urls.push(`${base}/editions/${edition}/${hadithNumber}${suffix}`);
+      }
+    }
   }
   let lastErr=null;
   for(const url of urls){
@@ -663,21 +1084,36 @@ function saveItem(){
     item.ayahEnd=range.end;
     item.ayah=range.start;
     item.ref=`${s.name} ${sn}:${range.start}${range.end>range.start?`-${range.end}`:''}`;
-  } else {
+  } else if(curType==='hadith') {
     const slug=document.getElementById('h-book').value;
     const bk=BOOKS.find(b=>b.slug===slug);
     item.book=slug; item.bookName=bk.name;
     item.hadithNum=parseInt(document.getElementById('h-num').value);
     item.ref=`${bk.name} #${item.hadithNum}`;
+  } else {
+    item.knowledgeKind=document.getElementById('x-kind').value.trim();
+    item.branch=document.getElementById('x-branch').value.trim();
+    item.area=document.getElementById('x-area').value.trim();
+    item.subTopic=document.getElementById('x-subtopic').value.trim();
+    item.scholar=document.getElementById('x-scholar').value.trim();
+    item.bookTitle=document.getElementById('x-book').value.trim();
+    item.reference=document.getElementById('x-ref').value.trim();
+    item.url=document.getElementById('x-url').value.trim();
+    if(!item.sourceBook&&item.bookTitle) item.sourceBook=item.bookTitle;
+    const lead=item.topic||item.subTopic||item.scholar||item.bookTitle||'Knowledge Text';
+    item.ref=`${item.knowledgeKind||'Knowledge'} — ${lead}`;
   }
   items.push(item);
   save();
+  refreshFieldOptions();
+  renderKnowledge();
   showMsg('✓ Saved to library!','ok');
   setTimeout(()=>{
     fetched=null;
     document.getElementById('prev').classList.remove('show');
     document.getElementById('sbtn').disabled=true;
-    ['f-topic','f-sec','f-src','f-notes','q-ayah','h-num'].forEach(id=>document.getElementById(id).value='');
+    ['f-topic','f-sec','f-src','f-notes','q-ayah','h-num','x-branch','x-area','x-subtopic','x-scholar','x-book','x-ref','x-url','x-ara','x-eng'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('x-kind').value='Usul';
     showTrans=false;
     document.getElementById('tsw').classList.remove('on');
     document.getElementById('p-eng').classList.remove('show');
@@ -689,19 +1125,38 @@ function save(){ localStorage.setItem('hifzhub_v1',JSON.stringify(items)); }
 
 // ═══════════════ LIBRARY ═══════════════
 function renderLib(){
+  refreshFieldOptions();
   const q=document.getElementById('srch').value.toLowerCase();
   const tf=document.getElementById('ftype').value;
   const sf=document.getElementById('fstatus').value;
+  const secf=document.getElementById('fsection').value;
+  const srcf=document.getElementById('fsource').value;
+  const topf=document.getElementById('ftopic').value;
+  const kindf=document.getElementById('fkind').value;
+  const branchf=document.getElementById('fbranch').value;
+  const scholarf=document.getElementById('fscholar').value;
 
   const fil=items.filter(i=>{
     if(tf!=='all'&&i.type!==tf) return false;
     if(sf!=='all'&&i.status!==sf) return false;
+    if(secf!=='all'&&(i.section||'')!==secf) return false;
+    if(srcf!=='all'&&(i.sourceBook||'')!==srcf) return false;
+    if(topf!=='all'&&(i.topic||'')!==topf) return false;
+    if(kindf!=='all'&&(i.knowledgeKind||'')!==kindf) return false;
+    if(branchf!=='all'&&(i.branch||'')!==branchf) return false;
+    if(scholarf!=='all'&&(i.scholar||'')!==scholarf) return false;
     if(q){
-      const hay=`${i.ref||''} ${i.topic||''} ${i.section||''} ${i.notes||''} ${i.surahName||''} ${i.bookName||''}`.toLowerCase();
+      const hay=`${i.ref||''} ${i.topic||''} ${i.section||''} ${i.notes||''} ${i.surahName||''} ${i.bookName||''} ${i.knowledgeKind||''} ${i.branch||''} ${i.area||''} ${i.subTopic||''} ${i.scholar||''} ${i.bookTitle||''} ${i.reference||''}`.toLowerCase();
       if(!hay.includes(q)) return false;
     }
     return true;
   });
+  lastLibFilteredIds=fil.map(i=>i.id);
+  if(bulkMode){
+    const valid=new Set(lastLibFilteredIds);
+    [...bulkSelectedIds].forEach(id=>{ if(!valid.has(id)) bulkSelectedIds.delete(id); });
+  }
+  updateBulkUi();
 
   const tot=items.length, mem=items.filter(i=>i.status==='memorized').length,
         lrn=items.filter(i=>i.status==='learning').length,
@@ -724,14 +1179,20 @@ function renderLib(){
     return;
   }
   g.innerHTML=fil.map(i=>`
-    <div class="card" onclick="openModal('${i.id}')">
+    <div class="card" onclick="${bulkMode?`toggleBulkCard('${i.id}')`:`openModal('${i.id}')`}">
       <div class="c-head">
         <div class="c-ref">${i.ref}${i.topic?`<small>${i.topic}</small>`:''}</div>
-        <span class="badge ${i.type}">${i.type==='quran'?'📖':'📚'} ${i.type}</span>
+        <div class="c-head-right">
+          ${bulkMode?`<input class="bulk-check" type="checkbox" ${bulkSelectedIds.has(i.id)?'checked':''} onclick="event.stopPropagation();toggleBulkCard('${i.id}')">`:''}
+          <span class="badge ${i.type}">${i.type==='quran'?'📖':i.type==='hadith'?'📚':'📝'} ${i.type}</span>
+        </div>
       </div>
       <div class="c-arabic">${i.arabic}</div>
       <div class="c-meta">
         <span class="tag"><span class="sdot ${i.status}"></span>${i.status}</span>
+        ${i.knowledgeKind?`<span class="tag">${i.knowledgeKind}</span>`:''}
+        ${i.branch?`<span class="tag">${i.branch}</span>`:''}
+        ${i.scholar?`<span class="tag">${i.scholar}</span>`:''}
         ${i.section?`<span class="tag">${i.section}</span>`:''}
         ${i.sourceBook?`<span class="tag">${i.sourceBook}</span>`:''}
       </div>
@@ -744,10 +1205,64 @@ function renderLib(){
   `).join('');
 }
 
+function renderKnowledge(){
+  refreshFieldOptions();
+  const q=(document.getElementById('k-srch').value||'').toLowerCase();
+  const kind=document.getElementById('k-kind').value;
+  const branch=document.getElementById('k-branch').value;
+  const scholar=document.getElementById('k-scholar').value;
+  const status=document.getElementById('k-status').value;
+
+  const list=items.filter(i=>{
+    if(i.type!=='knowledge') return false;
+    if(kind!=='all'&&(i.knowledgeKind||'')!==kind) return false;
+    if(branch!=='all'&&(i.branch||'')!==branch) return false;
+    if(scholar!=='all'&&(i.scholar||'')!==scholar) return false;
+    if(status!=='all'&&i.status!==status) return false;
+    if(q){
+      const hay=`${i.ref||''} ${i.topic||''} ${i.branch||''} ${i.area||''} ${i.subTopic||''} ${i.scholar||''} ${i.bookTitle||''} ${i.reference||''} ${i.arabic||''} ${i.english||''}`.toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  const el=document.getElementById('k-list');
+  if(!list.length){
+    el.innerHTML=`<div class="empty"><div class="eico">📝</div><h3>No knowledge entries found</h3><p>Add entries from the Add New tab or adjust filters.</p></div>`;
+    return;
+  }
+  el.innerHTML=list.map(i=>`
+    <div class="k-row">
+      <div class="k-main">
+        <div class="k-title">${escHtml(i.ref||'Knowledge Text')}</div>
+        <div class="k-sub">${escHtml(i.topic||i.subTopic||'')}</div>
+        <div class="k-quote">${escHtml((i.arabic||i.english||'').slice(0,280))}</div>
+      </div>
+      <div class="k-meta">
+        ${i.knowledgeKind?`<span class="tag">${escHtml(i.knowledgeKind)}</span>`:''}
+        ${i.branch?`<span class="tag">${escHtml(i.branch)}</span>`:''}
+        ${i.area?`<span class="tag">${escHtml(i.area)}</span>`:''}
+        ${i.subTopic?`<span class="tag">${escHtml(i.subTopic)}</span>`:''}
+      </div>
+      <div class="k-meta">
+        ${i.scholar?`<span class="tag">👤 ${escHtml(i.scholar)}</span>`:''}
+        ${i.bookTitle?`<span class="tag">📕 ${escHtml(i.bookTitle)}</span>`:''}
+        ${i.reference?`<span class="tag">🔖 ${escHtml(i.reference)}</span>`:''}
+      </div>
+      <div class="k-actions">
+        <button class="btn-sm btn-rev" onclick="singleRevise('${i.id}')">🃏</button>
+        <button class="btn-sm btn-edit" onclick="editItem('${i.id}')">✏</button>
+        <button class="btn-sm btn-del" onclick="delItem('${i.id}')">🗑</button>
+      </div>
+    </div>
+  `).join('');
+}
+
 function delItem(id){
   if(!confirm('Remove this entry?')) return;
   items=items.filter(i=>i.id!==id);
-  save(); renderLib();
+  refreshFieldOptions();
+  save(); renderLib(); renderKnowledge();
 }
 
 // ═══════════════ MODAL ═══════════════
@@ -763,13 +1278,20 @@ function openModal(id){
         <div style="font-family:'Lora',serif;font-size:1.15rem;color:var(--cream)">${i.ref}</div>
         ${i.topic?`<div style="font-size:.83rem;color:var(--muted);margin-top:4px">${i.topic}</div>`:''}
       </div>
-      <span class="badge ${i.type}">${i.type}</span>
+      <span class="badge ${i.type}">${i.type==='quran'?'📖':i.type==='hadith'?'📚':'📝'} ${i.type}</span>
     </div>
     <div class="m-arabic">${i.arabic}</div>
     ${i.english?`<div class="m-eng"><span style="font-size:.72rem;font-weight:600;color:var(--gold-l);text-transform:uppercase;letter-spacing:.08em">Translation</span><br><br>${i.english}</div>`:''}
     <div class="m-row">
       ${i.section?`<span class="tag">📂 ${i.section}</span>`:''}
       ${i.sourceBook?`<span class="tag">📕 ${i.sourceBook}</span>`:''}
+      ${i.knowledgeKind?`<span class="tag">🏷 ${i.knowledgeKind}</span>`:''}
+      ${i.branch?`<span class="tag">🧭 ${i.branch}</span>`:''}
+      ${i.area?`<span class="tag">📌 ${i.area}</span>`:''}
+      ${i.subTopic?`<span class="tag">🔹 ${i.subTopic}</span>`:''}
+      ${i.scholar?`<span class="tag">👤 ${i.scholar}</span>`:''}
+      ${i.reference?`<span class="tag">🔖 ${i.reference}</span>`:''}
+      ${i.url?`<span class="tag"><a href="${escHtml(i.url)}" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:none">🔗 Link</a></span>`:''}
       <span class="tag">📅 ${new Date(i.createdAt).toLocaleDateString()}</span>
     </div>
     ${i.notes?`<div style="background:var(--surf2);border-radius:9px;padding:13px;font-size:.84rem;color:var(--cream-dim);line-height:1.75"><strong style="color:var(--cream-dim)">Notes:</strong> ${i.notes}</div>`:''}
@@ -789,7 +1311,7 @@ function closeModal(e){
 
 function updStatus(id,s){
   const i=items.find(x=>x.id===id);
-  if(i){i.status=s;save();openModal(id);}
+  if(i){i.status=s;save();refreshFieldOptions();openModal(id);renderKnowledge();}
 }
 
 function escHtml(v){
@@ -808,10 +1330,60 @@ function editItem(id){
          <label>Ayah # / Range</label>
          <input class="fi" id="e-ref-num" type="text" inputmode="numeric" value="${escHtml(`${i.ayahStart||i.ayah||''}${(i.ayahEnd&&i.ayahEnd!==(i.ayahStart||i.ayah))?`-${i.ayahEnd}`:''}`)}" placeholder="e.g. 255 or 255-257">
        </div>`
-    : `<div class="fg" style="margin-bottom:10px">
+    : i.type==='hadith' ? `<div class="fg" style="margin-bottom:10px">
          <label>Hadith #</label>
          <input class="fi" id="e-ref-num" type="number" min="1" value="${escHtml(i.hadithNum||'')}">
+       </div>` : `<div class="fg" style="margin-bottom:10px">
+         <label>Reference Label</label>
+         <input class="fi" id="e-ref-text" value="${escHtml(i.ref||'')}">
        </div>`;
+  const knowledgeFields=i.type==='knowledge' ? `
+    <div class="frow">
+      <div class="fg" style="margin-bottom:10px">
+        <label>Knowledge Type</label>
+        <input class="fi" id="e-kind" value="${escHtml(i.knowledgeKind||'')}">
+      </div>
+      <div class="fg" style="margin-bottom:10px">
+        <label>Scholar / Author</label>
+        <input class="fi" id="e-scholar" list="scholar-options" value="${escHtml(i.scholar||'')}">
+      </div>
+    </div>
+    <div class="frow">
+      <div class="fg" style="margin-bottom:10px">
+        <label>Branch</label>
+        <input class="fi" id="e-branch" list="branch-options" value="${escHtml(i.branch||'')}">
+      </div>
+      <div class="fg" style="margin-bottom:10px">
+        <label>Area</label>
+        <input class="fi" id="e-area" list="area-options" value="${escHtml(i.area||'')}">
+      </div>
+      <div class="fg" style="margin-bottom:10px">
+        <label>Sub-Topic</label>
+        <input class="fi" id="e-subtopic" list="subtopic-options" value="${escHtml(i.subTopic||'')}">
+      </div>
+    </div>
+    <div class="frow">
+      <div class="fg" style="margin-bottom:10px">
+        <label>Book / Source Title</label>
+        <input class="fi" id="e-book" list="book-options" value="${escHtml(i.bookTitle||'')}">
+      </div>
+      <div class="fg" style="margin-bottom:10px">
+        <label>Reference</label>
+        <input class="fi" id="e-reference" value="${escHtml(i.reference||'')}">
+      </div>
+    </div>
+    <div class="fg" style="margin-bottom:10px">
+      <label>Source URL</label>
+      <input class="fi" id="e-url" value="${escHtml(i.url||'')}">
+    </div>
+    <div class="fg" style="margin-bottom:10px">
+      <label>Primary Text / Quote</label>
+      <textarea class="fta" id="e-ara">${escHtml(i.arabic||'')}</textarea>
+    </div>
+    <div class="fg" style="margin-bottom:10px">
+      <label>Optional Translation / Explanation</label>
+      <textarea class="fta" id="e-eng">${escHtml(i.english||'')}</textarea>
+    </div>` : '';
 
   document.getElementById('mcontent').innerHTML=`
     <div style="font-family:'Lora',serif;font-size:1.15rem;color:var(--cream);margin-bottom:14px;padding-right:30px">Edit Entry</div>
@@ -822,16 +1394,16 @@ function editItem(id){
     ${refField}
     <div class="fg" style="margin-bottom:10px">
       <label>Topic / Title</label>
-      <input class="fi" id="e-topic" value="${escHtml(i.topic||'')}">
+      <input class="fi" id="e-topic" list="topic-options" value="${escHtml(i.topic||'')}">
     </div>
     <div class="frow">
       <div class="fg" style="margin-bottom:10px">
         <label>Section</label>
-        <input class="fi" id="e-sec" value="${escHtml(i.section||'')}">
+        <input class="fi" id="e-sec" list="section-options" value="${escHtml(i.section||'')}">
       </div>
       <div class="fg" style="margin-bottom:10px">
         <label>Source Book</label>
-        <input class="fi" id="e-src" value="${escHtml(i.sourceBook||'')}">
+        <input class="fi" id="e-src" list="source-options" value="${escHtml(i.sourceBook||'')}">
       </div>
     </div>
     <div class="fg" style="margin-bottom:10px">
@@ -846,6 +1418,9 @@ function editItem(id){
       <label>Personal Notes</label>
       <textarea class="fta" id="e-notes">${escHtml(i.notes||'')}</textarea>
     </div>
+    ${knowledgeFields}
+    <div class="msgbox" id="emsg"></div>
+    <button class="fetch-btn" id="efbtn" onclick="fetchEditContent('${id}')">🔍 Fetch Updated Text from API</button>
     <div class="m-acts">
       <button class="stbtn a-learning" onclick="saveEdit('${id}')">💾 Save Changes</button>
       <button class="stbtn" onclick="openModal('${id}')">↩ Back</button>
@@ -869,30 +1444,102 @@ function saveEdit(id){
       i.ayahEnd=range.end;
       i.ayah=range.start;
       i.ref=`${s.name} ${i.surah}:${range.start}${range.end>range.start?`-${range.end}`:''}`;
-    } else {
+    } else if(i.type==='hadith') {
       const hn=parseInt(document.getElementById('e-ref-num').value,10);
       if(!hn||hn<1) throw new Error('Hadith number must be 1 or greater.');
       i.hadithNum=hn;
       i.ref=`${i.bookName} #${hn}`;
+    } else {
+      i.ref=document.getElementById('e-ref-text').value.trim()||'Knowledge Text';
+      i.knowledgeKind=document.getElementById('e-kind').value.trim();
+      i.scholar=document.getElementById('e-scholar').value.trim();
+      i.branch=document.getElementById('e-branch').value.trim();
+      i.area=document.getElementById('e-area').value.trim();
+      i.subTopic=document.getElementById('e-subtopic').value.trim();
+      i.bookTitle=document.getElementById('e-book').value.trim();
+      i.reference=document.getElementById('e-reference').value.trim();
+      i.url=document.getElementById('e-url').value.trim();
+      i.arabic=document.getElementById('e-ara').value.trim();
+      i.english=document.getElementById('e-eng').value.trim();
+      if(!i.sourceBook&&i.bookTitle) i.sourceBook=i.bookTitle;
     }
     save();
+    refreshFieldOptions();
     openModal(id);
     renderLib();
+    renderKnowledge();
   }catch(e){
     alert(e.message);
   }
+}
+
+function showEditMsg(txt,cls){
+  const el=document.getElementById('emsg');
+  if(!el) return;
+  el.textContent=txt;
+  el.className='msgbox'+(txt?` show ${cls}`:'');
+}
+
+async function fetchEditContent(id){
+  const i=items.find(x=>x.id===id); if(!i) return;
+  const btn=document.getElementById('efbtn');
+  if(btn){ btn.disabled=true; btn.textContent='⏳ Fetching…'; }
+  showEditMsg('','');
+  try{
+    if(i.type==='quran'){
+      const next=await fetchQuranByRef(i.surah,document.getElementById('e-ref-num').value);
+      i.arabic=next.arabic;
+      i.english=next.english;
+      i.ayahStart=next.qRange.start;
+      i.ayahEnd=next.qRange.end;
+      i.ayah=next.qRange.start;
+      i.ref=`${i.surahName} ${i.surah}:${next.qRange.start}${next.qRange.end>next.qRange.start?`-${next.qRange.end}`:''}`;
+    } else if(i.type==='hadith') {
+      const hn=parseInt(document.getElementById('e-ref-num').value,10);
+      if(!hn||hn<1) throw new Error('Hadith number must be 1 or greater.');
+      const next=await fetchHadithByRef(i.book,hn);
+      if(!next.arabic) throw new Error('Arabic text unavailable for this hadith.');
+      i.arabic=next.arabic;
+      i.english=next.english||'';
+      i.hadithNum=hn;
+      i.ref=`${i.bookName} #${hn}`;
+    } else {
+      const next=await fetchKnowledgeByEditInput();
+      i.arabic=next.arabic;
+      i.english=next.english;
+      i.url=document.getElementById('e-url').value.trim();
+    }
+    save();
+    showEditMsg('✓ Text updated from API. Save Changes to keep metadata edits too.','ok');
+    renderKnowledge();
+  }catch(e){
+    showEditMsg('⚠ '+e.message,'err');
+  }
+  if(btn){ btn.disabled=false; btn.textContent='🔍 Fetch Updated Text from API'; }
 }
 
 // ═══════════════ FLASHCARD ═══════════════
 function startRevision(){
   const tf=document.getElementById('fc-ftype').value;
   const sf=document.getElementById('fc-fstatus').value;
+  const secf=document.getElementById('fc-fsection').value;
+  const srcf=document.getElementById('fc-fsource').value;
+  const topf=document.getElementById('fc-ftopic').value;
+  const kindf=document.getElementById('fc-fkind').value;
+  const branchf=document.getElementById('fc-fbranch').value;
+  const scholarf=document.getElementById('fc-fscholar').value;
   fcShowTrans=document.getElementById('fc-ftrans').value==='yes';
 
   fcItems=items.filter(i=>{
     if(tf!=='all'&&i.type!==tf) return false;
     if(sf==='not-memorized') return i.status!=='memorized';
     if(sf!=='all'&&i.status!==sf) return false;
+    if(secf!=='all'&&(i.section||'')!==secf) return false;
+    if(srcf!=='all'&&(i.sourceBook||'')!==srcf) return false;
+    if(topf!=='all'&&(i.topic||'')!==topf) return false;
+    if(kindf!=='all'&&(i.knowledgeKind||'')!==kindf) return false;
+    if(branchf!=='all'&&(i.branch||'')!==branchf) return false;
+    if(scholarf!=='all'&&(i.scholar||'')!==scholarf) return false;
     return true;
   }).sort(()=>Math.random()-.5);
 
@@ -923,7 +1570,7 @@ function renderFC(){
   fcFlipped=false;
   document.getElementById('fc-inner').classList.remove('flipped');
   document.getElementById('fc-acts').classList.remove('show');
-  document.getElementById('fc-ico').textContent=i.type==='quran'?'📖':'📚';
+  document.getElementById('fc-ico').textContent=i.type==='quran'?'📖':i.type==='hadith'?'📚':'📝';
   document.getElementById('fc-ref').textContent=i.ref;
   document.getElementById('fc-tl').textContent=i.topic||i.section||'';
   document.getElementById('fc-ara').textContent=i.arabic;
@@ -1002,7 +1649,7 @@ function importJSON(e){
       const ids=new Set(items.map(i=>i.id));
       let added=0;
       imp.forEach(item=>{if(!ids.has(item.id)){items.push(item);ids.add(item.id);added++;}});
-      save(); renderLib(); switchTab('library');
+      save(); refreshFieldOptions(); renderLib(); switchTab('library');
       alert(`✓ Imported ${added} new items! (${imp.length-added} duplicates skipped)`);
     }catch(err){alert('Import error: '+err.message);}
   };

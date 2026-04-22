@@ -11,6 +11,8 @@ Here's the **Hifz Hub** app! 🎉 Here's everything that's packed in:
 
 **🏷️ Tags per entry** — Topic/Title, Section (e.g. Aqeedah), Source Book (e.g. Fortress of Muslim), and personal Notes.
 
+**📝 Knowledge Texts** — add and organize Usul, Qawaid, poem lines, scholar sayings, fatwa notes, faidah, and other excerpts with fields like branch, area, sub-topic, scholar, book title, reference, URL, and quote text (manual or URL-assisted capture).
+
 **🃏 Flashcard Revision** — tap the card to flip and reveal Arabic text; mark each card as *Need Review*, *Got It*, or *Memorized ⭐*; filter sessions by type/status; see a summary at the end.
 
 **💾 Auto-save** — everything goes to browser localStorage, so it's always there when you return.
